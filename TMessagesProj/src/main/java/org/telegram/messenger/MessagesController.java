@@ -6683,16 +6683,9 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public boolean isChatNoForwards(TLRPC.Chat chat) {
-        if (chat == null) {
-            return false;
-        }
-        if (chat.migrated_to != null) {
-            TLRPC.Chat migratedTo = getChat(chat.migrated_to.channel_id);
-            if (migratedTo != null) {
-                return migratedTo.noforwards;
-            }
-        }
-        return chat.noforwards;
+        // Fork: ignore the chat "restrict saving content" (noforwards) flag so
+        // copying, saving and forwarding stay available.
+        return false;
     }
 
     public boolean isChatNoForwards(long chatId) {
@@ -6708,11 +6701,8 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public boolean isUserNoForwards(TLRPC.UserFull userFull) {
-        if (userFull == null) {
-            return false;
-        }
-
-        return userFull.noforwards_peer_enabled || userFull.noforwards_my_enabled;
+        // Fork: ignore the user-level noforwards flag.
+        return false;
     }
 
     public TLRPC.User getUser(Long id) {
@@ -10518,7 +10508,7 @@ public class MessagesController extends BaseController implements NotificationCe
                         }
 
                         TL_account.updateStatus req = new TL_account.updateStatus();
-                        req.offline = false;
+                        req.offline = true; // Fork stealth: always report offline, never online.
                         statusRequest = getConnectionsManager().sendRequest(req, (response, error) -> {
                             if (error == null) {
                                 lastStatusUpdateTime = System.currentTimeMillis();
@@ -11367,6 +11357,10 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public boolean sendTyping(long dialogId, long threadMsgId, int action, String emojicon, int classGuid) {
+        if (true) {
+            // Fork stealth: never broadcast typing / recording / uploading activity.
+            return false;
+        }
         if (action < 0 || action >= sendingTypings.length || dialogId == 0) {
             return false;
         }
@@ -14541,6 +14535,11 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     private void completeReadTask(ReadTask task) {
+        if (true) {
+            // Fork stealth: never send read receipts to the server (local read
+            // state is already updated in markDialogAsRead).
+            return;
+        }
         if (task.replyId != 0 && task.monoForumPeerId == 0) {
             TLRPC.TL_messages_readDiscussion req = new TLRPC.TL_messages_readDiscussion();
             req.msg_id = (int) task.replyId;

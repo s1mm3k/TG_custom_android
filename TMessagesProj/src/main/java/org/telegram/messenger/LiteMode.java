@@ -147,6 +147,10 @@ public class LiteMode {
     }
 
     public static boolean isEnabled(int flag) {
+        if (flag == FLAG_ANIMATED_STICKERS_CHAT || flag == FLAG_ANIMATED_STICKERS_KEYBOARD) {
+            // Fork: render stickers/emoji statically (no animation playback).
+            return false;
+        }
         if (flag == FLAG_CHAT_FORUM_TWOCOLUMN && AndroidUtilities.isTablet()) {
             // always enabled for tablets
             return true;

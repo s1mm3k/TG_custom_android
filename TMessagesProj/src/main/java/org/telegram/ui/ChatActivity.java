@@ -22412,6 +22412,21 @@ public class ChatActivity extends BaseFragment implements
                 scheduleNowDialog.dismiss();
                 scheduleNowDialog = null;
             }
+            // Fork anti-delete: in normal chat view keep server-deleted messages visible (marked) instead of removing them.
+            if (chatMode == MODE_DEFAULT && !movedToScheduled && !messages.isEmpty()) {
+                boolean anyKept = false;
+                for (int a = 0; a < messages.size(); a++) {
+                    MessageObject m = messages.get(a);
+                    if (m != null && !m.deletedByServer) {
+                        m.deletedByServer = true;
+                        anyKept = true;
+                    }
+                }
+                if (anyKept) {
+                    updateVisibleRows();
+                }
+                return;
+            }
             processDeletedMessages(markAsDeletedMessages, channelId, sent, !movedToScheduled);
             if (movedToScheduled && chatMode != ChatActivity.MODE_SCHEDULED) {
                 getMessagesController().forceNoReload(dialog_id, ChatActivity.MODE_SCHEDULED);
@@ -26782,6 +26797,16 @@ public class ChatActivity extends BaseFragment implements
             if (remove) {
                 messageObjects.remove(a);
                 a--;
+            }
+
+            // Fork edit-diff: remember the pre-edit text so it can be shown alongside the new text.
+            if (messageObject.messageOwner != null && messageObject.messageOwner.edit_date != 0
+                    && old.messageOwner != null && old.messageOwner.message != null
+                    && messageObject.messageOwner.message != null
+                    && !old.messageOwner.message.equals(messageObject.messageOwner.message)) {
+                messageObject.previousEditedText = old.messageOwner.message;
+                messageObject.editDiffApplied = false;
+                messageObject.generateLayout(null);
             }
 
             addToPolls(messageObject, old);

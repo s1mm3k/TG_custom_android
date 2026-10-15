@@ -654,6 +654,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private int infoHeaderRowEmpty;
     private int infoEndRowEmpty;
     private int phoneRow;
+    private int idRow;
     private int noteRow;
     private int locationRow;
     private int userInfoRow;
@@ -10520,6 +10521,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         infoHeaderRowEmpty = -1;
         infoEndRowEmpty = -1;
         phoneRow = -1;
+        idRow = -1;
         noteRow = -1;
         userInfoRow = -1;
         locationRow = -1;
@@ -10708,6 +10710,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     }
                 }
                 infoStartRow = rowCount;
+                idRow = rowCount++;
                 if (!isBot && (hasPhone || !hasInfo)) {
                     phoneRow = rowCount++;
                 }
@@ -10864,6 +10867,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (actionsView == null) {
                     infoHeaderRow = rowCount++;
                 }
+                idRow = rowCount++;
                 if (chatInfo != null) {
                     if (!TextUtils.isEmpty(chatInfo.about)) {
                         channelInfoRow = rowCount++;
@@ -13506,6 +13510,20 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         }
                         isFragmentPhoneNumber = phoneNumber != null && phoneNumber.matches("888\\d{8}");
                         detailCell.setTextAndValue(text, LocaleController.getString(isFragmentPhoneNumber ? R.string.AnonymousNumber : R.string.PhoneMobile), false);
+                    } else if (position == idRow) {
+                        long peerId;
+                        int dc;
+                        if (userId != 0) {
+                            final TLRPC.User idUser = getMessagesController().getUser(userId);
+                            dc = idUser != null && idUser.photo != null ? idUser.photo.dc_id : 0;
+                            peerId = userId;
+                        } else {
+                            final TLRPC.Chat idChat = getMessagesController().getChat(chatId);
+                            dc = idChat != null && idChat.photo != null ? idChat.photo.dc_id : 0;
+                            peerId = chatId;
+                        }
+                        final String idValue = dc > 0 ? ("ID • DC" + dc) : "ID";
+                        detailCell.setTextAndValue(String.valueOf(peerId), idValue, true);
                     } else if (position == noteRow) {
                         final TLRPC.UserFull userInfo = getMessagesController().getUserFull(userId);
                         if (userInfo == null) return;
@@ -14321,7 +14339,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             if (position == infoHeaderRow || position == membersHeaderRow || position == settingsSectionRow2 ||
                     position == numberSectionRow || position == helpHeaderRow || position == debugHeaderRow || position == botPermissionsHeader) {
                 return VIEW_TYPE_HEADER;
-            } else if (position == phoneRow || position == locationRow || position == numberRow || position == birthdayRow) {
+            } else if (position == phoneRow || position == idRow || position == locationRow || position == numberRow || position == birthdayRow) {
                 return VIEW_TYPE_TEXT_DETAIL;
             } else if (position == usernameRow || position == setUsernameRow) {
                 return VIEW_TYPE_TEXT_DETAIL_MULTILINE;
@@ -15720,6 +15738,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             put(++pointer, infoHeaderRowEmpty, sparseIntArray);
             put(++pointer, infoEndRowEmpty, sparseIntArray);
             put(++pointer, phoneRow, sparseIntArray);
+            put(++pointer, idRow, sparseIntArray);
             put(++pointer, noteRow, sparseIntArray);
             put(++pointer, locationRow, sparseIntArray);
             put(++pointer, userInfoRow, sparseIntArray);
@@ -16329,6 +16348,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             copyButton = getString(R.string.ProfileCopyUsername);
         } else if (position == phoneRow) {
             textToCopy = user.phone;
+        } else if (position == idRow) {
+            textToCopy = String.valueOf(userId);
+            copyButton = getString(R.string.Copy);
         } else if (position == birthdayRow) {
             textToCopy = UserInfoActivity.birthdayString(userInfo.birthday);
         }

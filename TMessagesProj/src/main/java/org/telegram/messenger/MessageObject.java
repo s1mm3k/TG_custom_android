@@ -226,6 +226,9 @@ public class MessageObject {
     public String monthKey;
     public boolean deleted;
     public boolean deletedByThanos;
+    public boolean deletedByServer; // Fork anti-delete: message was deleted on the server but kept visible.
+    public CharSequence previousEditedText; // Fork edit-diff: text of the message before the latest edit.
+    public boolean editDiffApplied; // Fork edit-diff: guard so the previous text is appended only once per layout build.
     public float audioProgress;
     public float forceSeekTo = -1;
     public int audioProgressMs;
@@ -8748,6 +8751,19 @@ public class MessageObject {
             paint = Theme.chat_msgGameTextPaint;
         } else {
             paint = Theme.chat_msgTextPaint;
+        }
+
+        // Fork edit-diff: append the pre-edit text below the current text (struck-through, red).
+        if (previousEditedText != null && previousEditedText.length() > 0 && !editDiffApplied) {
+            SpannableStringBuilder withPrev = new SpannableStringBuilder(messageText);
+            withPrev.append("\n");
+            int ps = withPrev.length();
+            withPrev.append(previousEditedText);
+            int pe = withPrev.length();
+            withPrev.setSpan(new android.text.style.StrikethroughSpan(), ps, pe, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            withPrev.setSpan(new android.text.style.ForegroundColorSpan(0xFFE05A5A), ps, pe, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            messageText = withPrev;
+            editDiffApplied = true;
         }
 
         CharSequence text = messageText;

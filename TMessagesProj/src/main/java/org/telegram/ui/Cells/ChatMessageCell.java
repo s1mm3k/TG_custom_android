@@ -1563,6 +1563,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private int backgroundDrawableRight;
     private int backgroundDrawableTop;
     private int backgroundDrawableBottom;
+    private Paint forkDeletedPaint; // Fork anti-delete: red tint over server-deleted messages.
     private int viaWidth;
     private int viaNameWidth;
     private boolean viaOnly;
@@ -24926,6 +24927,15 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         lastAnimationTime = newAnimationTime;
         closeExplanationX = -1;
         closeExplanationY = -1;
+
+        // Fork anti-delete: tint messages that were deleted on the server but kept visible.
+        if (currentMessageObject != null && currentMessageObject.deletedByServer) {
+            if (forkDeletedPaint == null) {
+                forkDeletedPaint = new Paint();
+            }
+            forkDeletedPaint.setColor(0x33FF2A2A);
+            canvas.drawRect(backgroundDrawableLeft, backgroundDrawableTop, backgroundDrawableLeft + backgroundDrawableRight, backgroundDrawableBottom, forkDeletedPaint);
+        }
 
         if (currentMessageObject.hadAnimationNotReadyLoading && photoImage.getVisible() && !currentMessageObject.needDrawBluredPreview() && (documentAttachType == DOCUMENT_ATTACH_TYPE_ROUND || documentAttachType == DOCUMENT_ATTACH_TYPE_VIDEO || documentAttachType == DOCUMENT_ATTACH_TYPE_GIF)) {
             AnimatedFileDrawable animation = photoImage.getAnimation();

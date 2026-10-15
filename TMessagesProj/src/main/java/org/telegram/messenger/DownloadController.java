@@ -621,6 +621,10 @@ public class DownloadController extends BaseController implements NotificationCe
         }
         if (messageObject.isHiddenSensitive())
             return false;
+        // Fork: disable media auto-download; stickers / animated emoji / dice still allowed.
+        if (!(messageObject.isSticker() || messageObject.isAnimatedSticker() || messageObject.isAnimatedEmoji() || messageObject.isDice())) {
+            return false;
+        }
         return canDownloadMediaInternal(messageObject) == 1;
     }
 
@@ -873,6 +877,10 @@ public class DownloadController extends BaseController implements NotificationCe
         } else if (MessageObject.getDocument(message) != null) {
             type = AUTODOWNLOAD_TYPE_DOCUMENT;
         } else {
+            return 0;
+        }
+        // Fork: disable media auto-download; stickers still allowed.
+        if (!(MessageObject.isStickerMessage(message) || MessageObject.isAnimatedStickerMessage(message))) {
             return 0;
         }
         int index;
