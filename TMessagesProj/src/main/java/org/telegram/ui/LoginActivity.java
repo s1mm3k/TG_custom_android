@@ -3083,6 +3083,10 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
             if (forceDisableSafetyNet || TextUtils.isEmpty(BuildVars.SAFETYNET_KEY)) {
                 settings.allow_firebase = false;
             }
+            // Fork: this build is signed with its own certificate and cannot pass Telegram's
+            // Firebase/SafetyNet attestation, which silently blocks code delivery in release
+            // builds. Always request a plain SMS/app code instead.
+            settings.allow_firebase = false;
 
             ArrayList<TLRPC.TL_auth_authorization> loginTokens = AuthTokensHelper.getSavedLogInTokens();
             if (loginTokens != null) {
